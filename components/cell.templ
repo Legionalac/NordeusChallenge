@@ -1,0 +1,67 @@
+package components
+import "fmt"
+import "strconv"
+
+func getColorForHeight(height int) string {
+	lowColor := [3]int{0, 0, 255}    // Blue
+	midColor := [3]int{0, 255, 0}     // Green
+	highColor := [3]int{139, 69, 19}  // Brown
+
+	var color [3]int
+
+	if height < 500 {
+		ratio := float64(height) / 500
+		color[0] = int(float64(lowColor[0]) + ratio*float64(midColor[0]-lowColor[0]))
+		color[1] = int(float64(lowColor[1]) + ratio*float64(midColor[1]-lowColor[1]))
+		color[2] = int(float64(lowColor[2]) + ratio*float64(midColor[2]-lowColor[2]))
+	} else {
+		ratio := float64(height-500) / 500
+		color[0] = int(float64(midColor[0]) + ratio*float64(highColor[0]-midColor[0]))
+		color[1] = int(float64(midColor[1]) + ratio*float64(highColor[1]-midColor[1]))
+		color[2] = int(float64(midColor[2]) + ratio*float64(highColor[2]-midColor[2]))
+	}
+
+    return fmt.Sprintf("rgb(%d,%d,%d)", color[0], color[1], color[2])
+}
+
+css styleCell(height int){
+    background-color: {
+        templ.SafeCSSProperty(fmt.Sprintf("%s", getColorForHeight(height)))
+    };
+    height: 3vh;
+    width: 3vh;
+}
+
+templ Cell(height int, rowId int, colId int) {
+    <button
+    rowId={strconv.Itoa(rowId)}
+    colId={strconv.Itoa(colId)}
+    hx-post={"/attempt?rowId=" + strconv.Itoa(rowId) + "&colId=" + strconv.Itoa(colId)}
+    hx-trigger="click"
+    hx-target="#result"
+    hx-swap="outerHTML"
+    class={ styleCell(height) }>
+    </button>
+}
+
+templ Table(matrix [][]int) {
+    <div
+    class="flex flex-row"
+    >
+    for i:=0; i<30; i++{
+        <div class="flex flex-col">
+            for j:=0; j<30; j++{
+                @Cell(matrix[j][i], j , i)
+            }
+        </div>
+    }
+    </div>
+}
+
+
+templ Placeholder() {
+   <div
+   class="flex flex-row"
+   id="result">
+   </div>
+}
